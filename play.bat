@@ -152,7 +152,7 @@ echo  [*] Checking MySQL...
 tasklist /FI "IMAGENAME eq mysqld.exe" 2>NUL | find /I "mysqld.exe" >NUL
 if errorlevel 1 (
     call :LOG "MySQL not running - attempting net start..."
-    echo  [*] MySQL not running - starting service...
+    echo  [*] MySQL not running - starting...
     net start MySQL84 >nul 2>&1
     if not errorlevel 1 (
         call :LOG "MySQL84 service started OK"
@@ -174,9 +174,23 @@ if errorlevel 1 (
             )
         )
     )
-    timeout /t 5 /nobreak >nul
-    call :LOG "MySQL start wait complete"
-    echo  [OK] MySQL started.
+    :: Wait up to 30 seconds for mysqld to be ready (port 3306 accepting connections)
+    set /a MYSQL_WAIT=0
+    :MYSQL_WAIT_LOOP
+    netstat -ano 2>NUL | find ":3306" | find "LISTENING" >NUL
+    if not errorlevel 1 goto :MYSQL_READY
+    if !MYSQL_WAIT! GEQ 30 (
+        call :LOG "ERROR: MySQL did not start in time"
+        echo  [!] MySQL is not responding on port 3306 after 30 seconds.
+        echo      Try starting MySQL manually from services.msc, then re-run play.bat.
+        pause & exit /b 1
+    )
+    set /a MYSQL_WAIT+=2
+    timeout /t 2 /nobreak >nul
+    goto :MYSQL_WAIT_LOOP
+    :MYSQL_READY
+    call :LOG "MySQL ready on port 3306 (waited !MYSQL_WAIT!s)"
+    echo  [OK] MySQL ready.
 ) else (
     call :LOG "MySQL already running"
     echo  [OK] MySQL already running.
@@ -231,6 +245,9 @@ if errorlevel 1 (
 call :LOG "Starting worldserver from %BIN%..."
 echo  [*] Starting worldserver...
 start "World Server" /D "%BIN%" cmd.exe /K ""%BIN%\worldserver.exe""
+
+:: Brief pause to let worldserver.exe appear in process list before we start polling
+timeout /t 5 /nobreak >nul
 
 :: ---- Wait for load ----
 echo.

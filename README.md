@@ -86,9 +86,14 @@ The menu gives you:
 
 ### First launch load time
 
-The world server loads a large amount of data on startup. Expect **5–15 minutes** depending on your drive speed and whether Windows Defender is scanning files. Adding the Defender exclusion (see top of README) is the most effective way to reduce this.
+The world server loads a large amount of data on startup. Expect **5–20 minutes** depending on your drive speed and whether Windows Defender is scanning files. Adding the Defender exclusion (see top of README) is the most effective way to reduce this.
 
-The play.bat menu will tell you when the server is ready. Do not open WoW until it says so.
+Observed load times:
+- **Best case** (warm OS file cache + Defender excluded): ~4 minutes
+- **Typical cold start** (after reboot + Defender excluded): ~12 minutes
+- **Without Defender exclusion**: up to 20+ minutes
+
+The play.bat menu will automatically launch WoW the moment the server is ready. Do not open WoW manually until then.
 
 ---
 

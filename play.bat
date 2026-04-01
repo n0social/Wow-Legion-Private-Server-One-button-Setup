@@ -299,7 +299,7 @@ if errorlevel 1 (
 call :LOG "Launching WoW client: %CLIENT%"
 echo.
 echo  [*] Launching WoW...
-start "" "%CLIENT%"
+start "WoW Legion" "%CLIENT%"
 call :LOG "WoW launched"
 echo.
 echo  =========================================================

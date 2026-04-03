@@ -82,10 +82,16 @@ if exist "%MYSQL%" (
 
 :: ---- MySQL password ----
 echo.
+set "MYSQL_PASS="
 set /p "MYSQL_PASS=  Enter your MySQL root password (press Enter if none): "
+if defined MYSQL_PASS (
+    set "PASS_ARG=--password=!MYSQL_PASS!"
+) else (
+    set "PASS_ARG="
+)
 
 :: Test MySQL connection
-"%MYSQL%" -u root --password=!MYSQL_PASS! --connect-expired-password -e "SELECT 1;" >nul 2>&1
+"%MYSQL%" -u root !PASS_ARG! --connect-expired-password -e "SELECT 1;" >nul 2>&1
 if errorlevel 1 (
     echo  [!] Could not connect to MySQL with that password.
     echo      Make sure MySQL service is running and the password is correct.
@@ -98,8 +104,13 @@ echo  [OK] MySQL connection successful.
 :: which causes an abort() inside libmysql.dll when a player tries to log in.
 echo.
 echo  [*] Applying MySQL 8.x compatibility fix...
-"%MYSQL%" -u root --password=!MYSQL_PASS! -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '!MYSQL_PASS!';" >nul 2>&1
-"%MYSQL%" -u root --password=!MYSQL_PASS! -e "FLUSH PRIVILEGES;" >nul 2>&1
+"%MYSQL%" -u root !PASS_ARG! -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '!MYSQL_PASS!';" >nul 2>&1
+"%MYSQL%" -u root !PASS_ARG! -e "FLUSH PRIVILEGES;" >nul 2>&1
+
+:: ---- MySQL performance tuning (speeds up worldserver load times) ----
+echo  [*] Tuning MySQL for faster server loading...
+"%MYSQL%" -u root !PASS_ARG! -e "SET GLOBAL innodb_buffer_pool_size = 536870912; SET GLOBAL tmp_table_size = 134217728; SET GLOBAL max_heap_table_size = 134217728; SET GLOBAL innodb_flush_log_at_trx_commit = 2;" >nul 2>&1
+echo  [OK] MySQL tuned (512MB buffer pool, 128MB temp tables).
 echo  [OK] MySQL auth plugin set to mysql_native_password.
 if not exist "%TMP_DIR%" mkdir "%TMP_DIR%"
 
@@ -166,14 +177,14 @@ if not exist "%TMP_DIR%\ADB_735.10_world.sql" (
 :: ---- Create databases ----
 echo.
 echo  [*] Creating databases...
-"%MYSQL%" -u root --password=!MYSQL_PASS! -e "CREATE DATABASE IF NOT EXISTS auth CHARACTER SET utf8mb4; CREATE DATABASE IF NOT EXISTS characters CHARACTER SET utf8mb4; CREATE DATABASE IF NOT EXISTS world CHARACTER SET utf8mb4; CREATE DATABASE IF NOT EXISTS hotfixes CHARACTER SET utf8mb4;" 2>&1
+"%MYSQL%" -u root !PASS_ARG! -e "CREATE DATABASE IF NOT EXISTS auth CHARACTER SET utf8mb4; CREATE DATABASE IF NOT EXISTS characters CHARACTER SET utf8mb4; CREATE DATABASE IF NOT EXISTS world CHARACTER SET utf8mb4; CREATE DATABASE IF NOT EXISTS hotfixes CHARACTER SET utf8mb4;" 2>&1
 echo  [OK] Databases created.
 
 :: ---- Import world database (~350MB - takes several minutes) ----
 echo.
 echo  [*] Importing world database (~350MB)...
 echo      Please wait - this takes 3-8 minutes.
-cmd /c ""%MYSQL%" -u root --password=!MYSQL_PASS! --max_allowed_packet=512M world < "%TMP_DIR%\ADB_735.10_world.sql""
+cmd /c ""%MYSQL%" -u root !PASS_ARG! --max_allowed_packet=512M world < "%TMP_DIR%\ADB_735.10_world.sql""
 if errorlevel 1 (
     echo  [!] World DB import failed.
     pause & exit /b 1
@@ -183,7 +194,7 @@ echo  [OK] World database imported.
 :: ---- Import hotfix database (~120MB) ----
 echo.
 echo  [*] Importing hotfix database (~120MB)...
-cmd /c ""%MYSQL%" -u root --password=!MYSQL_PASS! --max_allowed_packet=512M hotfixes < "%TMP_DIR%\ADB_735.10_hotfix.sql""
+cmd /c ""%MYSQL%" -u root !PASS_ARG! --max_allowed_packet=512M hotfixes < "%TMP_DIR%\ADB_735.10_hotfix.sql""
 if errorlevel 1 (
     echo  [!] Hotfix DB import failed.
     pause & exit /b 1
@@ -195,24 +206,24 @@ echo.
 echo  [*] Applying custom patches...
 
 :: Patch 1: character_companion table
-"%MYSQL%" -u root --password=!MYSQL_PASS! characters < "%SQL_DIR%\01_character_companion.sql" 2>&1
+"%MYSQL%" -u root !PASS_ARG! characters < "%SQL_DIR%\01_character_companion.sql" 2>&1
 echo  [OK] character_companion table applied.
 
 :: Patch 2: custom creature entries
-"%MYSQL%" -u root --password=!MYSQL_PASS! world < "%SQL_DIR%\02_custom_creatures.sql" 2>&1
+"%MYSQL%" -u root !PASS_ARG! world < "%SQL_DIR%\02_custom_creatures.sql" 2>&1
 echo  [OK] Custom NPC entries applied.
 
 :: Patch 3: hotfix column renames (idempotent - safe to re-run)
-"%MYSQL%" -u root --password=!MYSQL_PASS! hotfixes < "%SQL_DIR%\03_hotfix_column_patches.sql" 2>nul
+"%MYSQL%" -u root !PASS_ARG! hotfixes < "%SQL_DIR%\03_hotfix_column_patches.sql" 2>nul
 echo  [OK] Hotfix column patches applied.
 
 :: Patch 4: fix stale/corrupt instance data (truncates instance_reset)
-"%MYSQL%" -u root --password="!MYSQL_PASS!" characters < "%SQL_DIR%\04_fix_instance_data.sql" 2>&1
+"%MYSQL%" -u root !PASS_ARG! characters < "%SQL_DIR%\04_fix_instance_data.sql" 2>&1
 echo  [OK] Instance data cleaned.
 
 :: ---- Reset update tracking (so worldserver doesn't re-run patches) ----
-"%MYSQL%" -u root --password=!MYSQL_PASS! world -e "TRUNCATE TABLE updates; TRUNCATE TABLE updates_include;" 2>&1
-"%MYSQL%" -u root --password=!MYSQL_PASS! hotfixes -e "TRUNCATE TABLE updates; TRUNCATE TABLE updates_include;" 2>&1
+"%MYSQL%" -u root !PASS_ARG! world -e "TRUNCATE TABLE updates; TRUNCATE TABLE updates_include;" 2>&1
+"%MYSQL%" -u root !PASS_ARG! hotfixes -e "TRUNCATE TABLE updates; TRUNCATE TABLE updates_include;" 2>&1
 
 :: ---- Generate worldserver.conf ----
 echo.

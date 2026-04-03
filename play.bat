@@ -145,6 +145,7 @@ for %%F in (bnetserver.exe libmysql.dll libcrypto-3-x64.dll libssl-3-x64.dll) do
     if not exist "%BIN%\%%F" call :LOG "WARNING: missing %%F"
 )
 
+
 :: ---- Start MySQL ----
 call :LOG "Checking MySQL..."
 echo.

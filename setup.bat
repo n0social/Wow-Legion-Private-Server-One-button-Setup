@@ -357,6 +357,19 @@ echo  [*] Adding Windows Defender exclusion for server folder...
 echo     (This prevents Defender from scanning DB2/DLL files on every launch)
 powershell -NoProfile -Command "try { Add-MpPreference -ExclusionPath '%ROOT%\server' -ErrorAction Stop; Write-Host '  [OK] Defender exclusion added.' } catch { Write-Host '  [!] Could not add Defender exclusion (non-fatal).' }"
 
+:: ---- Block WoW client from phoning home to Blizzard ----
+echo.
+echo  [*] Blocking WoW client internet access (loopback stays open)...
+powershell -NoProfile -Command ^
+  "Remove-NetFirewallRule -DisplayName 'Block Hellgarve WoW Internet' -ErrorAction SilentlyContinue; ^
+   $exe = '%ROOT%\WoW_Client\Hellgarve.Legion-64.exe'; ^
+   if (Test-Path $exe) { ^
+     New-NetFirewallRule -DisplayName 'Block Hellgarve WoW Internet' -Direction Outbound -Program $exe -Action Block -Profile Any -Enabled True | Out-Null; ^
+     Write-Host '  [OK] WoW client blocked from internet (local server still works).' ^
+   } else { ^
+     Write-Host '  [!] WoW exe not found at WoW_Client\ - firewall rule skipped.' ^
+   }"
+
 :: ---- Cleanup ----
 echo.
 echo  [*] Cleaning up temp files...

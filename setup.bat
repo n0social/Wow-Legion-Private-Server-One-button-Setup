@@ -370,6 +370,19 @@ powershell -NoProfile -Command ^
      Write-Host '  [!] WoW exe not found at WoW_Client\ - firewall rule skipped.' ^
    }"
 
+:: ---- Block fstorm.eu CDN in hosts file (stops version-check popup) ----
+echo  [*] Blocking fstorm.eu CDN in hosts file...
+powershell -NoProfile -Command ^
+  "$hosts = 'C:\Windows\System32\drivers\etc\hosts'; ^
+   $content = Get-Content $hosts -Raw; ^
+   if ($content -notmatch 'fstorm\.eu') { ^
+     Add-Content -Path $hosts -Value \"`n# Block Hellgarve client CDN (fstorm.eu)`n127.0.0.1 legion.fstorm.eu`n127.0.0.1 www.fstorm.eu`n127.0.0.1 fstorm.eu\"; ^
+     ipconfig /flushdns | Out-Null; ^
+     Write-Host '  [OK] fstorm.eu blocked in hosts file.' ^
+   } else { ^
+     Write-Host '  [OK] fstorm.eu already blocked.' ^
+   }"
+
 :: ---- Cleanup ----
 echo.
 echo  [*] Cleaning up temp files...

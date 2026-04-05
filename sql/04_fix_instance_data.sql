@@ -19,3 +19,16 @@ DELETE ci FROM character_instance ci
 DELETE gi FROM group_instance gi
   LEFT JOIN instance i ON gi.instance = i.id
   WHERE i.id IS NULL;
+
+-- Dismiss all in-game tutorial popups for every account.
+-- Legion shows a "Controls Tutorial" bar over the hotbar until all tutorial
+-- bits are flagged as seen. Setting tut0-tut7 to max (all bits = seen)
+-- suppresses every tutorial UI element permanently.
+INSERT INTO account_tutorial (accountId, tut0, tut1, tut2, tut3, tut4, tut5, tut6, tut7)
+  SELECT id,
+    4294967295, 4294967295, 4294967295, 4294967295,
+    4294967295, 4294967295, 4294967295, 4294967295
+  FROM auth.account
+  ON DUPLICATE KEY UPDATE
+    tut0=4294967295, tut1=4294967295, tut2=4294967295, tut3=4294967295,
+    tut4=4294967295, tut5=4294967295, tut6=4294967295, tut7=4294967295;

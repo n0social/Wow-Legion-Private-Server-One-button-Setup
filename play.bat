@@ -71,25 +71,9 @@ for /r "%PARENT%" %%F in (Wow.exe Wow-64.exe Hellgarve.Legion-64.exe) do (
     )
 )
 
-call :LOG "ERROR: WoW client not found"
-echo.
-echo  [!] WoW client not found automatically.
-echo.
-echo  Options:
-echo    A) Place your WoW 7.3.5 client folder at:
-echo         %ROOT%\WoW_Client\
-echo       It must contain Wow.exe (or Wow-64.exe).
-echo.
-echo    B) Create a file called client_path.txt in:
-echo         %ROOT%\
-echo       Containing the full path to your WoW exe, e.g.:
-echo         C:\WoW\Wow.exe
-echo.
-echo  Log saved to: %LOGFILE%
-pause & exit /b 1
+call :LOG "Client not found - skipping auto-launch"
 
 :CLIENT_FOUND
-echo !CLIENT!>"%ROOT%\client_path.txt"
 
 color 0A
 cls
@@ -297,13 +281,10 @@ if errorlevel 1 (
     pause & goto :eof
 )
 
-call :LOG "Launching WoW client: %CLIENT%"
-echo.
-echo  [*] Launching WoW...
-start "WoW Legion" "%CLIENT%"
-call :LOG "WoW launched"
+call :LOG "Server ready - waiting for manual client launch"
 echo.
 echo  =========================================================
+echo   Start Client to Proceed with Gameplay
 echo   Server is running.  Choose option [3] to stop cleanly.
 echo   Log: %LOGFILE%
 echo  =========================================================

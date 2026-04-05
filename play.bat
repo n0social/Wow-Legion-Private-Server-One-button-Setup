@@ -281,6 +281,15 @@ if errorlevel 1 (
     pause & goto :eof
 )
 
+:: ---- Fake CDN server (silences WoW "network data source" popup) ----
+:: The WoW client tries to reach http://legion.fstorm.eu/26365/versions
+:: (hosts file already redirects fstorm.eu -> 127.0.0.1)
+:: fake_cdn_server.ps1 listens on port 80 and returns a valid NGDP response.
+call :LOG "Starting fake CDN server on port 80..."
+start "FakeCDN" /B powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "%ROOT%\fake_cdn_server.ps1"
+timeout /t 2 /nobreak >nul
+call :LOG "Fake CDN server started"
+
 call :LOG "Server ready - waiting for manual client launch"
 echo.
 echo  =========================================================

@@ -383,6 +383,11 @@ powershell -NoProfile -Command ^
      Write-Host '  [OK] fstorm.eu already blocked.' ^
    }"
 
+:: ---- Register port 80 URL ACL so fake CDN server can bind without admin ----
+echo  [*] Registering port 80 URL ACL for fake CDN server...
+netsh http add urlacl url=http://+:80/ user=Everyone >nul 2>&1
+echo  [OK] Port 80 URL ACL registered.
+
 :: ---- Cleanup ----
 echo.
 echo  [*] Cleaning up temp files...

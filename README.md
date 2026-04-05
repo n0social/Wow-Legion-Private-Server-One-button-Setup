@@ -129,6 +129,13 @@ account set gmlevel USERNAME 3 -1
 
 ---
 
+## Known Limitations
+
+> **Full offline mode is Work In Progress.**
+> The WoW client may show a popup about a "network data source" or fail to reach `legion.fstorm.eu` on startup. This is cosmetic — the game still connects to your local server and is fully playable. A proper offline interception layer is planned for a future release.
+
+---
+
 ## Troubleshooting
 
 **World server takes forever to load**

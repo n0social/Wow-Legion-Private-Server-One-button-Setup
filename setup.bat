@@ -357,37 +357,6 @@ echo  [*] Adding Windows Defender exclusion for server folder...
 echo     (This prevents Defender from scanning DB2/DLL files on every launch)
 powershell -NoProfile -Command "try { Add-MpPreference -ExclusionPath '%ROOT%\server' -ErrorAction Stop; Write-Host '  [OK] Defender exclusion added.' } catch { Write-Host '  [!] Could not add Defender exclusion (non-fatal).' }"
 
-:: ---- Block WoW client from phoning home to Blizzard ----
-echo.
-echo  [*] Blocking WoW client internet access (loopback stays open)...
-powershell -NoProfile -Command ^
-  "Remove-NetFirewallRule -DisplayName 'Block Hellgarve WoW Internet' -ErrorAction SilentlyContinue; ^
-   $exe = '%ROOT%\WoW_Client\Hellgarve.Legion-64.exe'; ^
-   if (Test-Path $exe) { ^
-     New-NetFirewallRule -DisplayName 'Block Hellgarve WoW Internet' -Direction Outbound -Program $exe -Action Block -Profile Any -Enabled True | Out-Null; ^
-     Write-Host '  [OK] WoW client blocked from internet (local server still works).' ^
-   } else { ^
-     Write-Host '  [!] WoW exe not found at WoW_Client\ - firewall rule skipped.' ^
-   }"
-
-:: ---- Block fstorm.eu CDN in hosts file (stops version-check popup) ----
-echo  [*] Blocking fstorm.eu CDN in hosts file...
-powershell -NoProfile -Command ^
-  "$hosts = 'C:\Windows\System32\drivers\etc\hosts'; ^
-   $content = Get-Content $hosts -Raw; ^
-   if ($content -notmatch 'fstorm\.eu') { ^
-     Add-Content -Path $hosts -Value \"`n# Block Hellgarve client CDN (fstorm.eu)`n127.0.0.1 legion.fstorm.eu`n127.0.0.1 www.fstorm.eu`n127.0.0.1 fstorm.eu\"; ^
-     ipconfig /flushdns | Out-Null; ^
-     Write-Host '  [OK] fstorm.eu blocked in hosts file.' ^
-   } else { ^
-     Write-Host '  [OK] fstorm.eu already blocked.' ^
-   }"
-
-:: ---- Register port 80 URL ACL so fake CDN server can bind without admin ----
-echo  [*] Registering port 80 URL ACL for fake CDN server...
-netsh http add urlacl url=http://+:80/ user=Everyone >nul 2>&1
-echo  [OK] Port 80 URL ACL registered.
-
 :: ---- Cleanup ----
 echo.
 echo  [*] Cleaning up temp files...

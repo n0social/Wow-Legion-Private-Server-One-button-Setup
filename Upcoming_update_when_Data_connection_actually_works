@@ -1,0 +1,13 @@
+Updated the maps. Found that when trying to use GM commands to teleport to locations, there were issues with the db pulling those locations specifically Legion maps.
+
+Dungeon Finder/Raid Finder. Wasn't workin. At all. So got that relatively fixed. When person utilizes LFG they should be ported to the dungeon with a random set of five literal NPC's (still working on the 
+character layouts for templates as of now they'll get like farmers, but if you're max level, they're max level as well. They also have standard roles to match yours (tank,dps,heals)). 
+
+General folder issues. So I noticed that when trying to use the .bat file to start up the servers, the location of the Client (Legion) it won't scan the directory for the .exe. That's been a common issue. Don't have a 
+current solution to it. Rather, players just have to click the .exe once .bat file says servers are good to go.
+
+What else, item codes for GM commands, some items are not able to load. Will get that fixed. 
+
+Bots are working a lot better than before (some were not showing, some had mounts (alliance when they were horde) etc.. Bots have been updated.
+
+Stay tuned for the next upload.
